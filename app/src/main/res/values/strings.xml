@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Assignment</string>
+    <string name="button">Button</string>
+    <string name="chordz_4_dayz">Chordz 4 Dayz</string>
+    <string-array name="root">
+        <item>C</item>
+        <item>D</item>
+        <item>E</item>
+        <item>F</item>
+        <item>G</item>
+        <item>A</item>
+        <item>B</item>
+    </string-array>
+    <string-array name="accidental">
+        <item>Natural</item>
+        <item>Flat</item>
+        <item>Sharp</item>
+    </string-array>
+    <string-array name="mode">
+        <item>Major</item>
+        <item>Minor</item>
+    </string-array>
+    <string-array name="complexity">
+        <item>Triads</item>
+        <item>7th chords</item>
+        <item>Extensions</item>
+    </string-array>
+    <string-array name="instrument">
+        <item>Piano</item>
+        <item>Rhodes</item>
+        <item>Guitar</item>
+    </string-array>
+</resources>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/main_page">
+
+        <!-- Toolbar at the top -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#AAAAFF"
+            android:elevation="4dp"
+            app:title="@string/chordz_4_dayz"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Fact TextView below toolbar -->
+        <TextView
+            android:id="@+id/factView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:text="Your music fact will appear here"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Grid of buttons below fact view -->
+        <androidx.gridlayout.widget.GridLayout
+            android:id="@+id/grid"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:columnCount="2"
+            app:rowCount="2"
+            app:layout_constraintTop_toBottomOf="@+id/factView"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Your FrameLayout buttons here -->
+            <FrameLayout
+                android:id="@+id/chord1"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_columnWeight="1"
+                app:layout_rowWeight="1">
+
+                <Button
+                    android:id="@+id/chord_button1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="#00ffcc"
+                    android:text="Play"
+                    android:textColor="@android:color/white" />
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/chord2"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_columnWeight="1"
+                app:layout_rowWeight="1">
+
+                <Button
+                    android:id="@+id/chord_button2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="#00ffcc"
+                    android:text="Play"
+                    android:textColor="@android:color/white" />
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/chord3"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_columnWeight="1"
+                app:layout_rowWeight="1">
+
+                <Button
+                    android:id="@+id/chord_button3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="#00ffcc"
+                    android:text="Play"
+                    android:textColor="@android:color/white" />
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/chord0"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_columnWeight="1"
+                app:layout_rowWeight="1">
+
+                <Button
+                    android:id="@+id/chord_button0"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="#00ffcc"
+                    android:text="Play"
+                    android:textColor="@android:color/white" />
+            </FrameLayout>
+
+            <!-- Include your other 3 buttons here -->
+
+        </androidx.gridlayout.widget.GridLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:menu="@menu/nav_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>
