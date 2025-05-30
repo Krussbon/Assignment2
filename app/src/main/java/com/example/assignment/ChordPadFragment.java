@@ -210,6 +210,7 @@ public class ChordPadFragment extends Fragment {
             //Activity to play the chord
             if (listener != null) {
                 listener.onPlayChord(selectedChords,chordIndex);
+
             }
         });
         FloatingActionButton fab = view.findViewById(R.id.floatingActionButton);

@@ -17,6 +17,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -106,6 +108,22 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
         EdgeToEdge.enable(this);
         //Set the layout for this activity from the xml file
         setContentView(R.layout.pads_page);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // For Android 11 (API 30) and above
+            getWindow().setDecorFitsSystemWindows(false); // Let content draw behind system bars
+            WindowInsetsController insetsController = getWindow().getInsetsController();
+            if (insetsController != null) {
+                // Hide the status bar
+                insetsController.hide(WindowInsets.Type.statusBars());
+                insetsController.hide(WindowInsets.Type.navigationBars());
+
+                getWindow().setDecorFitsSystemWindows(false);
+                //Make sure the status and system bars appear on swipe from edge
+                insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                // Or if you want them to be entirely hidden unless you explicitly show them
+                // insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH);
+            }
+        }
         //Get the OFFSET value from the extras, default to 0 if not found.
         offset = extras.getInt("OFFSET",0);
         //declare an array to hold the chosen chord progression
@@ -115,7 +133,7 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
             //If the mode is set to minor, then set the scale array to represent the
             //minor scale in semitones
             // 0=C, 2=D, 3=Eb, 5=F, 7=G, 8=Ab, 10=Bb.
-            scale = new int[]{0, 2, 3, 5, 7, 8, 10,12,14,15,17,19,20};
+            scale = new int[]{0, 2, 3, 5, 7, 8, 10,12,14,15,17,19};
             //Randomly select one of the minor chord progressions
             selected = minorProgressions[(int)(Math.random()*minorProgressions.length)];
         }else {
@@ -203,12 +221,16 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
             switch(extras.getString("INSTR")) {
                 case "Piano"://if instrument is piano.
                 soundId = soundPool.load(this, R.raw.piano, 1);//This code loads the piano sample.
+                    //Sound by Le Amigo
+                    //https://samplefocus.com/samples/one-key-shot-grand-piano-keys-dezz
                 break;
                 case "Rhodes":// If instrument is Rhodes
                     soundId = soundPool.load(this, R.raw.rhode, 1);//This code loads the rhodes sample
+                    //sound by freesound_community
                     break;
                 case "Guitar":// If instrument is Guitar
                     soundId = soundPool.load(this, R.raw.guitar, 1);//This code loads the guitar sample
+                    //sound by Gabo Fernández
                     break;
             }
         }catch (Exception e){
@@ -257,7 +279,7 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
         //This code  gets retrofit API service.
         MusicBrainzApiService apiService = MusicBrainzClient.getClient();
         //Create an API call to search for artists of type "person" with tag rock
-        Call<ArtistResponse> call = apiService.searchArtist("type:person and tag:rock",
+        Call<ArtistResponse> call = apiService.searchArtist("type:person",
                 "json",
                 100);
         //Enqueue the call to execute it asynchronously
@@ -294,9 +316,9 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
     }
     //Formats and displays an artist's fact in the TextView.
     private void displayArtistFact(Artist artist) {
-        String fact = "Did you know about" + artist.getName() + "?\n\n";//Start with artist
+        String fact = "Did you know about " + artist.getName() + "?\n\n";//Start with artist
 
-//if the artist has a disambiguation, it is also added to the fect
+//if the artist has a disambiguation, it is also added to the fact
         if (artist.getDisambiguation() != null) {
             fact += artist.getDisambiguation();
         }
@@ -351,8 +373,9 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
     }
     //This function generates a chord based on a root index and whether it is altered
     public int[] getChord(int rootIndex,boolean altered){
+        rootIndex %=7;
         //Calculate the root, third and fifth of the chord using the single array and modulo 7 to wrap around.
-        int root = scale[rootIndex % 7]; //root
+        int root = scale[rootIndex]; //root
         int third = scale[(rootIndex + 2) % 7]; // third (which is two scale degrees above root)
         int fifth = scale[(rootIndex+4) % 7];// fifth (which is four scale degrees above root)
         //An arraylist can dynamically add notes to the chord

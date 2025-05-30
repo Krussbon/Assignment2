@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -43,15 +42,35 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         //This sets the main content view to the activity_main.xml file
         //found in the layouts folder
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_main);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // For Android 11 (API 30) and above
+            getWindow().setDecorFitsSystemWindows(false); // Let content draw behind system bars
+            WindowInsetsController insetsController = getWindow().getInsetsController();
+            if (insetsController != null) {
+                // Hide the status bar
+                insetsController.hide(WindowInsets.Type.statusBars());
+                insetsController.hide(WindowInsets.Type.navigationBars());
 
-
+                getWindow().setDecorFitsSystemWindows(false);
+                //Make sure the status and system bars appear on swipe from edge
+                insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                // Or if you want them to be entirely hidden unless you explicitly show them
+                // insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH);
+            }
+        }
 
         //This sets up a listener that is called when the system needs
         //to tell the app about changes in "window insets"
 
-//
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            //the inset for the system bars(The space that shows the battery, time etc)
+            //are set
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            //the view gets the padding based on the dimensions of the system bars
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
         //A toolbar variable is initialised  to display the name of the
         //and the hamburger button
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -301,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Log.e("MainActivity","Button not found");
         }
-
 
 
 
