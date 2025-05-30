@@ -1,45 +1,93 @@
 package com.example.assignment;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
+//Import necessary Android and Java Classes
+import android.content.Context;//Provides access to app-specific resources
+import android.graphics.drawable.Drawable; // For working with graphical drawables
+import android.os.Bundle;//Used for passing data between activities /fragments.
+
+import androidx.activity.result.ActivityResultLauncher;//Modern API for launching activities and getting results
+import androidx.activity.result.contract.ActivityResultContracts;//Standard contracts for common activity results
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import java.io.IOException;
+import java.io.InputStream;//Adding input stream
+
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 public class ChordPadFragment extends Fragment {
+    //ActivityResultLauncher for picking an image from the device's content provider
+    private ActivityResultLauncher<String> pickImageLauncher;
+    // Stores a reference to the specific pat pad View whose background is currently being
+    //changed
+    private View currentPadToChange;//this variable tracks which pad to change
 
-    public static double move_threshold = 50;
+    private int pointerCount=0;
+    //Threshold for detecting finger movement. If fingers move more than this,
+    //it's not considered a tap
+    public static double move_threshold = 125;
+    //the squared value of the move_threshold used for faster distance calculations
     public static final double MOVE_THRESHOLD_SQUARED = Math.pow(move_threshold,2);
+    //Bundle argument keys for passing data to the fragment
     private static final String ARG_CHORD_INDEX = "chord_index";
+    private GestureDetector gestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
+
     private static final String ARG_SELECTED_CHORDS = "selected_chords";
+    //The root View of this fragment, which acts as the interactive chord pad.
     private View padButtonView;
+    //Listener to communicate chord play events back to the hosting Activity
     private int chordIndex = 0;
+    //Listener that communicates chord play events back to the hosting activity
     private OnChordPlayListener listener;
+    //The 2D array of musical notes(integers representing semitone values)
+    //for all chords
     private int[][] selectedChords;
-    private View currentPadToChange;
-    private static final int PICK_IMAGE_REQUEST = 1;
+
+    //Flag to indicate if a two-finger tap sequence has begun(i.e., ACTION_POINTER_DOWN)
+    private boolean twoFingerTapSequenceStarted=false;
 
 
+    //multi-touch gesture state variables
+    //Time when the first finger touched down
+    private long multiTouchStartTime = -1;
+    //the X and y coordinates  of the first and second pointer(pointers 0 and 1 respectively)
+    private float p0InitialX = -1, p0InitialY = -1;
+    private float p1InitialX = -1, p1InitialY = -1;
+    private static final int TWO_FINGER_TAP_TIMEOUT = 300;
 
+    //Interface for communicating chord play events to the hosting Activity
     public interface OnChordPlayListener {
 
 
         void onPlayChord(int[][] selectedChords, int index);
     }
-
+    //Empty public constructor for Fragment instantiation
     public ChordPadFragment() {}
 
+    /*
+     * Factory Method in order to create a new instance of ChordPadFragment with initial arguments
+     * The chord index parameter is used for the chord index the pad represents.
+     * Chords is the 2D array of all selected chords for the pads.
+     * this returns a new instance of ChordPadFragment
+     */
     public static ChordPadFragment newInstance(int chordIndex,int[][] chords) {
+
         ChordPadFragment fragment = new ChordPadFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_CHORD_INDEX, chordIndex);
+
+        //Flatten the 2D chords array into a 1D array to pass it via Bundle
         int flat[] = new int[chords.length * chords[0].length];
         int cols = chords[0].length;
         for (int i = 0; i < chords.length; i++) {
@@ -55,6 +103,7 @@ public class ChordPadFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        //Ensure the hosting Activity implements OnChordPlayListener
         if (context instanceof OnChordPlayListener) {
             listener = (OnChordPlayListener) context;
         } else {
@@ -62,98 +111,88 @@ public class ChordPadFragment extends Fragment {
                     + " must implement OnChordPlayListener");
         }
     }
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState){
+                super.onCreate(savedInstanceState);
 
+
+        //Initialise the ActivityResultLauncher for picking images.
+        //This lambda expression handles the result of the image picker.
+        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(),
+                uri->{
+            //this is a lambda expression for the Activity Result Callback
+                    //this checks if a uri was returned and a pad was designated for change.
+                    if(uri!=null && currentPadToChange != null){
+                        if(getContext()!=null){
+                            try{
+                                //Open an input stream form the URI to read the image data.
+                                InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+
+                                Drawable d = Drawable.createFromStream(inputStream,uri.toString());
+                                currentPadToChange.setBackground(d);
+                                //Close the input stream to release resources.
+                                inputStream.close();
+                            } catch (IOException e) {
+                                //Log eny errors during image loading
+                                Log.e("ImagePicker","Error loading image: "+e.getMessage());
+                            }
+                        }else{
+                            //Log if context is null, indicating fragment detachment
+                            Log.d("Image Picker", "ImageSelection has been cancelled");
+                        }
+                    }
+                }
+                );
+
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_chord_button, container, false);
-        padButtonView=rootView;
-        if(padButtonView != null){
-            padButtonView.setOnTouchListener(new View.OnTouchListener(){
-                private static final int TAP_TIMEOUT = 200;
+        padButtonView = rootView;
 
 
-                private long firstTouchTime = -1;
-                private float firstTouchX = -1;
-                private float firstTouchY = -1;
 
 
-                @Override
-                public boolean onTouch(View v, MotionEvent event){
-                    int action = event.getActionMasked();
-                    int pointerCount = event.getPointerCount();
-                    switch (action){
-                        case MotionEvent.ACTION_DOWN:
-                            if (pointerCount==1){
-                                firstTouchTime = System.currentTimeMillis();
-                                firstTouchX = event.getX();
-                                firstTouchY = event.getY(); // Corrected in previous answer
-                            }else{
-                                firstTouchTime = -1;
-                            }
-                            break; // <-- Add this break
-
-                        case MotionEvent.ACTION_POINTER_DOWN:
-                            if(pointerCount==2) {
-                                long currentTime = System.currentTimeMillis();
-                                if (firstTouchTime != -1 && (currentTime - firstTouchTime <= TAP_TIMEOUT) && // Corrected in previous answer
-                                        (Math.pow(event.getX(0)-firstTouchX,2)+Math.pow(event.getY(0)-firstTouchY,2)<MOVE_THRESHOLD_SQUARED) && // Corrected in previous answer
-                                        (Math.pow(event.getX(1)-firstTouchX,2)+Math.pow(event.getY(1)-firstTouchY,2)<MOVE_THRESHOLD_SQUARED)) { // Corrected in previous answer
-                                    changePadBackground(v); // Use the new method name
-                                    firstTouchTime = -1;
-                                    return true; // Consume the event!
-                                }else{
-                                    firstTouchTime = currentTime;
-                                    firstTouchX=event.getX(0);
-                                    firstTouchY=event.getY(0);
-                                }
-                            }else{
-                                firstTouchTime=-1;
-                            }
-                            break; // <--- THIS IS THE MISSING BREAK! Add this here.
-
-                        case MotionEvent.ACTION_UP:
-                        case MotionEvent.ACTION_POINTER_UP:
-                            if (pointerCount < 2){
-                                firstTouchTime= -1;
-                            }
-                            break;
-
-                        case MotionEvent.ACTION_MOVE: // You had this case, which is good
-                            // Optional: If fingers move too far, cancel tap detection
-                            if (firstTouchTime != -1) {
-                                float dx0 = event.getX(0) - firstTouchX;
-                                float dy0 = event.getY(0) - firstTouchY;
-                                if ((dx0 * dx0 + dy0 * dy0) > MOVE_THRESHOLD_SQUARED) {
-                                    firstTouchTime = -1;
-                                }
-                            }
-                            break;
-                    }
-                    return false;
-                }
-            });
-        }
         return rootView;
     }
-
+//initiates the process of changing the background of a chord pad by launching an image picker
+    //param padview The view whose background needs to be changed.
     private void changePadBackground(View padView){
-        currentPadToChange = padView;
+        currentPadToChange = padView;//Store the reference to the pad.
 
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
+        pickImageLauncher.launch("image/*");//Launch the picker, requesting image content.
 
-        startActivityForResult(intent,PICK_IMAGE_REQUEST);
+
     }
+    public void initiateBackgroundChange() {
+        if (padButtonView != null) { // Use the fragment's own root view
+            currentPadToChange = padButtonView; // Set the target for the image picker
+            if (pickImageLauncher != null) {
+                pickImageLauncher.launch("image/*");
+                Log.d("ChordPadFragment", "Initiating background change for pad: " + chordIndex);
+            } else {
+                Log.e("ChordPadFragment", "pickImageLauncher is null in initiateBackgroundChange");
+            }
+        } else {
+            Log.e("ChordPadFragment", "padButtonView is null in initiateBackgroundChange");
+        }
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         Bundle args = getArguments();
-        if (args == null) return;
+        if (args == null) return;// if there are no arguments, nothing is done
+
+        //Retreive fragment arguments.
         chordIndex = args.getInt(ARG_CHORD_INDEX);
         int[] flat = args.getIntArray(ARG_SELECTED_CHORDS);
         int rows = args.getInt("rows",0);
         int cols = args.getInt("cols",0);
+
+        //REconstruct the 2D selectedChords array from the flattened array
         selectedChords = new int[rows][cols];
         if (flat !=null && rows>0 && cols>0) {
             for (int i = 0; i < rows; i++) {
@@ -161,15 +200,33 @@ public class ChordPadFragment extends Fragment {
             }
         }
 
+        //Get reference to the Button inside the fragment's layout.
         Button chordButton = view.findViewById(R.id.chord_button);
+        //Set the text of the button(e.g. "Chord 1")
         chordButton.setText("Chord " + (chordIndex + 1)); // Just for labeling
+        //The OnClick listener is set for single taps on the button
         chordButton.setOnClickListener(v -> {
+            //if there is a listener set, notify the PadsPage
+            //Activity to play the chord
             if (listener != null) {
                 listener.onPlayChord(selectedChords,chordIndex);
             }
         });
+        FloatingActionButton fab = view.findViewById(R.id.floatingActionButton);
+        fab.setOnClickListener(v -> {
+            initiateBackgroundChange();
+        });
+
     }
+
+    //Setter for updating the selected chords.
     public void setSelectedChords(int[][] selectedChords) {
         this.selectedChords = selectedChords;
     }
+    /*
+    * This is a helper method to reset all multi-touch gesture state variables to their inital values
+    * This ensures that each new touch desture starts from a clean slate.
+    */
+
+
 }

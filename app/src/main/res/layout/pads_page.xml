@@ -13,6 +13,7 @@
         android:id="@+id/main_page">
 
         <!-- Toolbar at the top -->
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -25,19 +26,21 @@
             app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- Fact TextView below toolbar -->
+
+        <!-- Grid of buttons below fact view -->
         <TextView
             android:id="@+id/factView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:textSize="16sp"
             android:text="Your music fact will appear here"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
 
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-        <!-- Grid of buttons below fact view -->
         <androidx.gridlayout.widget.GridLayout
             android:id="@+id/grid"
             android:layout_width="0dp"
@@ -50,6 +53,23 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <!-- Your FrameLayout buttons here -->
+            <FrameLayout
+                android:id="@+id/chord0"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_columnWeight="1"
+                app:layout_rowWeight="1">
+
+                <Button
+                    android:id="@+id/chord_button0"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="#00ffcc"
+                    android:text="Play"
+                    android:textColor="@android:color/white" />
+            </FrameLayout>
+
             <FrameLayout
                 android:id="@+id/chord1"
                 android:layout_width="0dp"
@@ -98,26 +118,12 @@
                     android:text="Play"
                     android:textColor="@android:color/white" />
             </FrameLayout>
-            <FrameLayout
-                android:id="@+id/chord0"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_columnWeight="1"
-                app:layout_rowWeight="1">
-
-                <Button
-                    android:id="@+id/chord_button0"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/button_background"
-                    android:backgroundTint="#00ffcc"
-                    android:text="Play"
-                    android:textColor="@android:color/white" />
-            </FrameLayout>
 
             <!-- Include your other 3 buttons here -->
 
         </androidx.gridlayout.widget.GridLayout>
+
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
