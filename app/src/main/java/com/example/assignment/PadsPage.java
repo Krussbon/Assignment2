@@ -88,7 +88,7 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
     //Defines the semitone intervals of the major scale
     //Example in C Major
     // 0=C, 2=D, 4=E, 5=F, 7=G, 9=A, 11=B.
-    private int scale[] = {0,2,4,5,7,9,11,12,14,16,17,19,21};
+    private int scale[] = {0,2,4,5,7,9,11,12,14,16,17,19,21,23,24};
         Bundle extras;
 //    private int chord0[] = {0,4,7};
 //    private int chord1[] ={0,5,9};
@@ -133,7 +133,7 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
             //If the mode is set to minor, then set the scale array to represent the
             //minor scale in semitones
             // 0=C, 2=D, 3=Eb, 5=F, 7=G, 8=Ab, 10=Bb.
-            scale = new int[]{0, 2, 3, 5, 7, 8, 10,12,14,15,17,19};
+            scale = new int[]{0, 2, 3, 5, 7, 8, 10,12,14,15,17,19,21,22,24};
             //Randomly select one of the minor chord progressions
             selected = minorProgressions[(int)(Math.random()*minorProgressions.length)];
         }else {
@@ -180,6 +180,10 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
             }else if(id==R.id.pads){
 
                 intent = new Intent(this, PadsPage.class); //create a new intent for PadsPage.
+                intent.putExtra("OFFSET",offset);
+                intent.putExtra("MODE",extras.getString("MODE"));
+                intent.putExtra("COMPL",extras.getString("COMPL"));
+                intent.putExtra("INSTR",extras.getString("INSTR"));
             }
             //if an intent was created. (i.e. if a navigation item was selected).
             if (intent != null) {
@@ -376,24 +380,24 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
         rootIndex %=7;
         //Calculate the root, third and fifth of the chord using the single array and modulo 7 to wrap around.
         int root = scale[rootIndex]; //root
-        int third = scale[(rootIndex + 2) % 7]; // third (which is two scale degrees above root)
-        int fifth = scale[(rootIndex+4) % 7];// fifth (which is four scale degrees above root)
+        int third = scale[(rootIndex + 2) % scale.length]; // third (which is two scale degrees above root)
+        int fifth = scale[(rootIndex+4) % scale.length];// fifth (which is four scale degrees above root)
         //An arraylist can dynamically add notes to the chord
         ArrayList<Integer> notes = new ArrayList<>();
         notes.add(root);
         notes.add(third);
         notes.add(fifth);
         //checks if the user selected 7ths complexity in the intent
-        if (Objects.requireNonNull(extras.getString("COMPL","Triads").equals("7ths"))){
-            int seventh = scale[(rootIndex+6) % 7];//the seventh is 6 scale degrees up from the root
+        if (extras.getString("COMPL","Triads").equals("7ths")){
+            int seventh = scale[(rootIndex+6) % scale.length];//the seventh is 6 scale degrees up from the root
             notes.add(seventh);//add the seventh note
         }
         //Checks if the "Exts" otption is selected
-        if (Objects.requireNonNull(extras.getString("COMPL","Triads").equals("Exts"))){
-            int seventh = scale[(rootIndex+6) % 7];//the seventh is 6 scale degrees up from the root
-            int ninth = scale[(rootIndex+8) % 7];//the seventh is 8 scale degrees up from the root
+        if (extras.getString("COMPL","Triads").equals("Exts")){
+            int seventh = scale[(rootIndex+6) % scale.length];//the seventh is 6 scale degrees up from the root
+            int ninth = scale[(rootIndex+8) % scale.length];//the seventh is 8 scale degrees up from the root
 
-            int thirteenth = scale[(rootIndex+12) % 7];//the thirteenth is 12 scale degrees up from the root
+            int thirteenth = scale[(rootIndex+12) %scale.length];//the thirteenth is 12 scale degrees up from the root
 
             int degrees[] = {seventh,ninth,thirteenth};
             for (int degree : degrees){ //Randomly add some extentions(7th,9th,13th) with 66.6% probablility
