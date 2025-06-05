@@ -34,6 +34,18 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navView;
     //OnCreate methods start when the activity is started
+    //this is the letter name of the root note
+    final int[] selectedScale = new int[1];
+    //this is the accidental fo the root note
+    final int[] selectedAccidental = new int[1];
+    //this represents the mode of the scale
+    final String[] selectedMode = new String[1];
+    //this defined the complexity of the chords
+    //the more "complex" the chords are, the more notes
+    //they have
+    final String[] selectedComplexity = new String[1];
+    //this defined the musical instrument the chords are played in
+    final String[] selectedInstrument= new String[1];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -110,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (intent != null) {
+
+                intent.putExtra("OFFSET",selectedScale[0]+selectedAccidental[0]);
+                intent.putExtra("MODE",selectedMode[0]);
+                intent.putExtra("COMPL",selectedComplexity[0]);
+                intent.putExtra("INSTR",selectedInstrument[0]);
                 startActivity(intent);
             }
             drawerLayout.closeDrawer(GravityCompat.START);  // Close drawer after selection
@@ -141,18 +158,8 @@ public class MainActivity extends AppCompatActivity {
         Spinner instSp = findViewById(R.id.spinnerInstrument);
         ArrayAdapter<CharSequence> adapter5 = ArrayAdapter.createFromResource(this,R.array.instrument,android.R.layout.simple_spinner_dropdown_item);
         instSp.setAdapter(adapter5);
-        //this is the letter name of the root note
-        final int[] selectedScale = new int[1];
-        //this is the accidental fo the root note
-        final int[] selectedAccidental = new int[1];
-        //this represents the mode of the scale
-        final String[] selectedMode = new String[1];
-        //this defined the complexity of the chords
-        //the more "complex" the chords are, the more notes
-        //they have
-        final String[] selectedComplexity = new String[1];
-        //this defined the musical instrument the chords are played in
-        final String[] selectedInstrument= new String[1];
+
+
         //selects the root note
         scales.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override

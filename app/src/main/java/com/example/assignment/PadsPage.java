@@ -181,7 +181,7 @@ public class PadsPage extends AppCompatActivity implements ChordPadFragment.OnCh
 
                 intent = new Intent(this, PadsPage.class); //create a new intent for PadsPage.
             }
-            //if an intent was created. (i.e. if a navigation item waas selected).
+            //if an intent was created. (i.e. if a navigation item was selected).
             if (intent != null) {
                 startActivity(intent);//Start the new Activity.
             }
